@@ -11,6 +11,8 @@ files="
   /proc/interrupts
   /proc/loadavg
   /proc/meminfo
+  /proc/net/netstat
+  /proc/net/snmp
   /proc/net/softnet_stat
   /proc/slabinfo
   /proc/softirqs
@@ -45,6 +47,17 @@ while true; do
   d=$(date '+%Y-%m-%dT%H:%M:%S')
   f=netstat
   c=$(netstat -s || true)
+  echo "_BEGIN_ $d $f"  | tee -a "${hostdev}"/console
+  echo "${c}"           | tee -a "${hostdev}"/console
+  echo "_END___ $d $f"  | tee -a "${hostdev}"/console
+  if [[ ${useJournal} = 'y' ]]; then
+    echo ${c} | systemd-cat -p notice -t "gke[$f]"
+  fi
+
+  # tc
+  d=$(date '+%Y-%m-%dT%H:%M:%S')
+  f=tc
+  c=$(tc -s qdisc show || true)
   echo "_BEGIN_ $d $f"  | tee -a "${hostdev}"/console
   echo "${c}"           | tee -a "${hostdev}"/console
   echo "_END___ $d $f"  | tee -a "${hostdev}"/console

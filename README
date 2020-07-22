@@ -1,18 +1,15 @@
-# README
+README
+======
 
 This is a debug pod that will record system level metrics to stdout and to
 the systemd log for offline analysis.
 
 You can run this either as a one-shot command to test it out:
 
-```shell
-kubectl run gcr.io/bowei-gke/debug-vm /run.sh -oneShot
-```
+  kubectl run gcr.io/bowei-gke/debug-vm /run.sh -oneShot
 
 or `kubectl apply -f deploy.yaml` to deploy a daemonset to your cluster. The
 daemonset by default will only deploy on nodes with the label `debug-vm: true`,
 so you must apply the label to have it run:
 
-```shell
-kubectl label nodes/gke-xxxx debug-vm=true
-```
+  kubectl label nodes/gke-xxxx debug-vm=true

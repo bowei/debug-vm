@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug-vm-oneshot
+  namespace: default
+spec:
+  nodeSelector:
+    debug-vm: "true"
+  hostNetwork: true
+  containers:
+  - name: main
+    image: gcr.io/bowei-gke/debug-vm
+    imagePullPolicy: Always
+    command: ["/run.sh"]
+    args: ["-oneShot"]
+    securityContext:
+      privileged: true
+      procMount: Unmasked
+    resources:
+      limits:
+        cpu: 50m
+        memory: 50Mi
+      requests:
+        cpu: 50m
+        memory: 50Mi
+    volumeMounts:
+    - name: journal
+      mountPath: /run/systemd/journal
+    volumeMounts:
+    - name: hostdev
+      mountPath: /hostdev
+  terminationGracePeriodSeconds: 30
+  volumes:
+  - name: journal
+    hostPath:
+      path: /run/systemd/journal
+  - name: hostdev
+    hostPath:
+      path: /dev

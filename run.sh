@@ -3,7 +3,7 @@
 set -e
 
 oneShot=${oneShot:=n}
-intervalSecs=${intervalSecs:=100}
+intervalSecs=${intervalSecs:=60}
 journalSocket=${journalSocket:=/run/systemd/journal/stdout}
 hostdev=${hostdev:=/hostdev}
 

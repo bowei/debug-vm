@@ -3,6 +3,7 @@ RUN apt-get update && apt-get install -y \
         bash \
         net-tools \
         nicstat \
+        procps \
         systemd \
         tcpdump \
         && rm -rf /var/lib/apt/lists/*

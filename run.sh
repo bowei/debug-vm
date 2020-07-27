@@ -2,12 +2,20 @@
 
 set -e
 
-function clean_logs() {
+function truncate_logs() {
   local total=$(du -b ${logs}/dump_*.tgz | awk '{x += $1} END{print x}')
-  for f in ${logs}/dump_*.gz; do
+  echo TOTAL $total
+  if [[ ${total} -le ${bytesMax} ]]; then
+    return
+  fi
+
+  echo "$(date '+%Y-%m-%dT%H:%M:%SZ') Cleaning logs"
+  for f in ${logs}/dump_*.tgz; do
     local sz=$(du -b $f | awk  '{print $1}')
+    rm ${f}
+    echo "Removing ${f}"
     total=$(( ${total} - ${sz} ))
-    if [[ ${local} -le ${bytesMax} ]]; then
+    if [[ ${total} -le ${bytesMax} ]]; then
       break
     fi
   done
@@ -19,7 +27,9 @@ journalSocket=${journalSocket:=/run/systemd/journal/stdout}
 hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
 logs=${logs:=/logs}
-bytesMax=$(( 250 * 1000 * 1000 )) # Maximum size of logs to keep around.
+if [[ -z ${bytesMax} ]]; then
+  bytesMax=$(( 250 * 1000 * 1000 )) # Maximum size of logs to keep around.
+fi
 
 files="
   /proc/interrupts
@@ -92,11 +102,11 @@ while true; do
 
   tar -czf "${logs}/dump_$(cat /${logs}/cur/date.txt).tgz" -C ${logs}/cur .
 
+  truncate_logs
+
   if [[ ${oneShot} = 'y' ]]; then
     break
   fi
-
-  clean_logs
 
   sleep "${intervalSecs}"
 done

@@ -26,17 +26,17 @@ function truncate_logs() {
 function output() {
   # Yes, this uses global variables: $f, $c to pass values.
   local d=$(date '+%Y-%m-%dT%H:%M:%SZ') # VMs are in UTC.
-  echo "_BEGIN_ ${d} ${f}"  | tee -a "${console}"
-  echo "${c}"           | tee -a "${console}"
-  echo "_END___ ${d} ${f}"  | tee -a "${console}"
-  echo "${c}"           > "${logs}/cur/${f}"
+  echo "_BEGIN_ ${d} ${f}" | tee -a "${console}"
+  echo "${c}"              | tee -a "${console}"
+  echo "_END___ ${d} ${f}" | tee -a "${console}"
+  echo "${c}"              > "${logs}/cur/${f}"
 
   if [[ ${useJournal} = 'y' ]]; then
     echo ${c} | systemd-cat -p notice -t "gke[${f}]"
   fi
 }
 
-oneShot=${oneShot:=n}
+oneShot=${oneShot:=n} # "y" runs the collector once.
 # empty (disabled), irqs, scheduling, or full (see hook.sh)
 ftraceMode=${ftraceMode:=""}
 maxFtraces=${maxFtraces:=0}
@@ -45,6 +45,7 @@ journalSocket=${journalSocket:=/run/systemd/journal/stdout}
 hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
 logs=${logs:=/logs}
+recordSysctl=${recordSysctl:=n} # "y" records sysctl settings.
 
 if [[ -z ${bytesMax} ]]; then
   bytesMax=$(( 250 * 1000 * 1000 )) # Maximum size of logs to keep around.
@@ -59,7 +60,6 @@ files="
   /proc/loadavg
   /proc/meminfo
   /proc/net/netstat
-  /proc/net/snmp
   /proc/net/softnet_stat
   /proc/slabinfo
   /proc/softirqs
@@ -118,11 +118,13 @@ while true; do
     c=$(nsenter --net -t ${pid} netstat -s)
     output
 
-    # Record sysctl settings. these are not output to console/journal to reduce
-    # spam.
-    f=sysctl_${pid}
-    c=$(nsenter --net -t ${pid} sysctl -a)
-    echo "${c}" > "${logs}/cur/${f}"
+    if [[ "${recordSysctl}" = "y" ]]; then
+      # Record sysctl settings. these are not output to console/journal to
+      # reduce spam.
+      f=sysctl_${pid}
+      c=$(nsenter --net -t ${pid} sysctl -a)
+      echo "${c}" > "${logs}/cur/${f}"
+    fi
   done
 
   # Ping kubelet for liveness

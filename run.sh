@@ -132,6 +132,13 @@ while true; do
     fi
   done
 
+  # ethtool for every interface
+  for iface in $(ip link | awk '/^[0-9]+: / {print $2}' | sed 's/:$//' | sed 's/@.*$//'); do
+    f=ethtool_${iface}
+    c=$(ethtool -S ${iface})
+    output
+  done
+
   # Ping kubelet for liveness
   f=kubelet_ping
   set +e

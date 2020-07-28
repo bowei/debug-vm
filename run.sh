@@ -37,13 +37,23 @@ function output() {
 }
 
 oneShot=${oneShot:=n}
+# empty (disabled), irqs, scheduling, or full (see hook.sh)
+ftraceMode=${ftraceMode:=""}
+maxFtraces=${maxFtraces:=0}
 intervalSecs=${intervalSecs:=60}
 journalSocket=${journalSocket:=/run/systemd/journal/stdout}
 hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
 logs=${logs:=/logs}
+
 if [[ -z ${bytesMax} ]]; then
   bytesMax=$(( 250 * 1000 * 1000 )) # Maximum size of logs to keep around.
+fi
+
+if [[ -n "$ftraceMode" ]]; then
+  nsenter -t 1 -m -u -i -n -p apt-get update
+  nsenter -t 1 -m -u -i -n -p apt-get install -y trace-cmd
+  source /hook.sh
 fi
 
 files="
@@ -119,7 +129,13 @@ while true; do
 
   # Ping kubelet for liveness
   f=kubelet_ping
-  c=$(curl -m 5 http://127.0.0.1:10255/healthz 2>&1 || true)
+  set +e
+  if ! c=$(curl -m "5" -f -s -S http://127.0.0.1:10248/healthz 2>&1); then
+    if [[ -n "$ftraceMode" ]]; then
+      do_ftrace "${ftraceMode}" "${maxFtraces}"
+    fi
+  fi
+  set -e
   output
 
   tar -czf "${logs}/dump_$(cat /${logs}/cur/date.txt).tgz" -C ${logs}/cur .

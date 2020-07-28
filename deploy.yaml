@@ -17,6 +17,7 @@ spec:
       nodeSelector:
         debug-vm: "true"
       hostNetwork: true
+      hostPID: true
       containers:
       - name: main
         image: gcr.io/bowei-gke/debug-vm
@@ -36,7 +37,6 @@ spec:
         volumeMounts:
         - name: journal
           mountPath: /run/systemd/journal
-        volumeMounts:
         - name: hostdev
           mountPath: /hostdev
       terminationGracePeriodSeconds: 30

@@ -44,10 +44,12 @@ intervalSecs=${intervalSecs:=60}
 journalSocket=${journalSocket:=/run/systemd/journal/stdout}
 hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
-logs=${logs:=/logs}
+logs=${logs:=/hostrun/debugvm/logs}
 recordSysctl=${recordSysctl:=n} # "y" records sysctl settings.
 reduceKernelHungTimeout=${reduceKernelHungTimeout:=n} # "y" reduces the hung task timeout to 20s
 enableSysRq=${enableSysRq:=n} # "y" will perform sysrq t to print dump kernel tasks to dmesg during hook.
+
+mkdir -p ${logs}
 
 if [[ -z ${bytesMax} ]]; then
   bytesMax=$(( 250 * 1000 * 1000 )) # Maximum size of logs to keep around.

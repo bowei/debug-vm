@@ -61,11 +61,13 @@ files="
   /proc/loadavg
   /proc/meminfo
   /proc/net/netstat
+  /proc/net/snmp
   /proc/net/softnet_stat
   /proc/slabinfo
   /proc/softirqs
   /proc/stat
   /proc/vmstat
+  /proc/zoneinfo
   "
 
 useJournal=n
@@ -113,8 +115,20 @@ while true; do
 
   # top
   f=top
-  c=$(top -b -n1)
+  c=$(COLUMNS=4096 top -b -n1 -c)
   output
+
+  # ps
+  f=ps_aux
+  c=$(ps aux)
+  output
+
+  # ethtool stats for every interface
+  for iface in $(ip link | awk '/^[0-9]+: / {print $2}' | sed 's/:$//' | sed 's/@.*$//'); do
+    f=ethtool_${iface}
+    c=$(ethtool -S ${iface} || true)
+    output
+  done
 
   # In each net ns
   for pid in $(lsns | grep \ net | awk '{print $4}'); do
@@ -123,6 +137,13 @@ while true; do
     c=$(nsenter --net -t ${pid} netstat -s)
     output
 
+    # eth stats from the container side
+    for iface in $(nsenter --net -t ${pid} ip link | awk '/^[0-9]+: / {print $2}' | sed 's/:$//' | sed 's/@.*$//'); do
+      f=ethtool_NS${pid}_${iface}
+      c=$(nsenter --net -t ${pid} ethtool -S ${iface} || true)
+      output
+    done
+
     if [[ "${recordSysctl}" = "y" ]]; then
       # Record sysctl settings. these are not output to console/journal to
       # reduce spam.
@@ -130,13 +151,6 @@ while true; do
       c=$(nsenter --net -t ${pid} sysctl -a)
       echo "${c}" > "${logs}/cur/${f}"
     fi
-  done
-
-  # ethtool for every interface
-  for iface in $(ip link | awk '/^[0-9]+: / {print $2}' | sed 's/:$//' | sed 's/@.*$//'); do
-    f=ethtool_${iface}
-    c=$(ethtool -S ${iface})
-    output
   done
 
   # Ping kubelet for liveness

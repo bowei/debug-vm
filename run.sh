@@ -44,7 +44,7 @@ intervalSecs=${intervalSecs:=60}
 journalSocket=${journalSocket:=/run/systemd/journal/stdout}
 hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
-logs=${logs:=/hostrun/debugvm/logs}
+logs=${logs:=/hostvar/debugvm/logs}
 recordSysctl=${recordSysctl:=n} # "y" records sysctl settings.
 reduceKernelHungTimeout=${reduceKernelHungTimeout:=n} # "y" reduces the hung task timeout to 20s
 enableSysRq=${enableSysRq:=n} # "y" will perform sysrq t to print dump kernel tasks to dmesg during hook.

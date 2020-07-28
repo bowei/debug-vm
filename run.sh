@@ -46,7 +46,7 @@ hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
 logs=${logs:=/logs}
 recordSysctl=${recordSysctl:=n} # "y" records sysctl settings.
-reduceKernelHungTimeout=${recordSysctl:=n} # "y" reduces the hung task timeout to 20s
+reduceKernelHungTimeout=${reduceKernelHungTimeout:=n} # "y" reduces the hung task timeout to 20s
 enableSysRq=${enableSysRq:=n} # "y" will perform sysrq t to print dump kernel tasks to dmesg during hook.
 
 if [[ -z ${bytesMax} ]]; then

@@ -1,6 +1,7 @@
 FROM debian
 RUN apt-get update && apt-get install -y \
         bash \
+        curl \
         net-tools \
         nicstat \
         procps \

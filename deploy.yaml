@@ -24,6 +24,9 @@ spec:
         imagePullPolicy: Always
         command: ["/run.sh"]
         args: []
+        env:
+        - name: VERSION
+          value: "4"
         securityContext:
           privileged: true
           procMount: Unmasked

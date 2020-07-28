@@ -23,6 +23,19 @@ function truncate_logs() {
   done
 }
 
+function output() {
+  # Yes, this uses global variables: $f, $c to pass values.
+  local d=$(date '+%Y-%m-%dT%H:%M:%SZ') # VMs are in UTC.
+  echo "_BEGIN_ ${d} ${f}"  | tee -a "${console}"
+  echo "${c}"           | tee -a "${console}"
+  echo "_END___ ${d} ${f}"  | tee -a "${console}"
+  echo "${c}"           > "${logs}/cur/${f}"
+
+  if [[ ${useJournal} = 'y' ]]; then
+    echo ${c} | systemd-cat -p notice -t "gke[${f}]"
+  fi
+}
+
 oneShot=${oneShot:=n}
 intervalSecs=${intervalSecs:=60}
 journalSocket=${journalSocket:=/run/systemd/journal/stdout}
@@ -64,7 +77,6 @@ while true; do
 
   # /proc
   for f in ${files}; do
-    d=$(date '+%Y-%m-%dT%H:%M:%S')
     c=$(cat ${f} || true)
     echo "_BEGIN_ $d $f" | tee -a "${console}"
     echo "${c}"          | tee -a "${console}"
@@ -77,56 +89,38 @@ while true; do
   done
 
   # netstat
-  d=$(date '+%Y-%m-%dT%H:%M:%S')
   f=netstat
   c=$(netstat -s || true)
-  echo "_BEGIN_ $d $f"  | tee -a "${console}"
-  echo "${c}"           | tee -a "${console}"
-  echo "_END___ $d $f"  | tee -a "${console}"
-  echo "${c}"           > "${logs}/cur/${f}"
-  if [[ ${useJournal} = 'y' ]]; then
-    echo ${c} | systemd-cat -p notice -t "gke[$f]"
-  fi
+  output
 
   # tc
-  d=$(date '+%Y-%m-%dT%H:%M:%S')
   f=tc
   c=$(tc -s qdisc show || true)
-  echo "_BEGIN_ $d $f"  | tee -a "${console}"
-  echo "${c}"           | tee -a "${console}"
-  echo "_END___ $d $f"  | tee -a "${console}"
-  echo "${c}"           > "${logs}/cur/${f}"
-  if [[ ${useJournal} = 'y' ]]; then
-    echo ${c} | systemd-cat -p notice -t "gke[$f]"
-  fi
+  output
 
   # top
-  d=$(date '+%Y-%m-%dT%H:%M:%S')
   f=top
   c=$(top -b -n1)
+  output
 
-  echo "_BEGIN_ $d $f"  | tee -a "${console}"
-  echo "${c}"           | tee -a "${console}"
-  echo "_END___ $d $f"  | tee -a "${console}"
-  echo "${c}"           > "${logs}/cur/${f}"
-  if [[ ${useJournal} = 'y' ]]; then
-    echo ${c} | systemd-cat -p notice -t "gke[$f]"
-  fi
-
-  # netstat in ns
+  # In each net ns
   for pid in $(lsns | grep \ net | awk '{print $4}'); do
-    d=$(date '+%Y-%m-%dT%H:%M:%S')
+    # netstat -s
     f=netstat_${pid}
     c=$(nsenter --net -t ${pid} netstat -s)
+    output
 
-    echo "_BEGIN_ $d $f"  | tee -a "${console}"
-    echo "${c}"           | tee -a "${console}"
-    echo "_END___ $d $f"  | tee -a "${console}"
-    echo "${c}"           > "${logs}/cur/${f}"
-    if [[ ${useJournal} = 'y' ]]; then
-      echo ${c} | systemd-cat -p notice -t "gke[$f]"
-    fi
+    # Record sysctl settings. these are not output to console/journal to reduce
+    # spam.
+    f=sysctl_${pid}
+    c=$(nsenter --net -t ${pid} sysctl -a)
+    echo "${c}" > "${logs}/cur/${f}"
   done
+
+  # Ping kubelet for liveness
+  f=kubelet_ping
+  c=$(curl -m 5 http://127.0.0.1:10255/healthz 2>&1 || true)
+  output
 
   tar -czf "${logs}/dump_$(cat /${logs}/cur/date.txt).tgz" -C ${logs}/cur .
 

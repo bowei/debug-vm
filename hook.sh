@@ -13,7 +13,7 @@ function do_ftrace() {
   fi
 
   local outDir="/tmp/fdumps"
-  nsenter -t 1 -m -u -i -n -p mkdir -p "${outDir}"
+  mkdir -p "${outDir}"
 
   local attemptsRemainingFile="/tmp/ftrace_attempts_left.txt"
   if [[ ! -f "${attemptsRemainingFile}" ]]; then
@@ -35,7 +35,6 @@ function do_ftrace() {
   echo "_BEGIN_ $d $f"  | tee -a "${console}"
 
   if [[ "${ftraceMode}" = "irqs" ]]; then
-    nsenter -t 1 -m -u -i -n -p \
     trace-cmd record \
       -e "napi:napi_poll" \
       -e "net:napi_gro_receive_entry" \
@@ -48,7 +47,6 @@ function do_ftrace() {
       -o "${outDir}/${ftraceMode}_${d}.dat" \
       sleep 10
   elif [[ "${ftraceMode}" = "scheduling" ]]; then
-      nsenter -t 1 -m -u -i -n -p \
       trace-cmd record \
       -e "sched:sched_wakeup" \
       -e "sched:sched_wakeup_new" \
@@ -60,7 +58,6 @@ function do_ftrace() {
       -o "${outDir}/${ftraceMode}_${d}.dat" \
       sleep 10
   elif [[ "${ftraceMode}" = "full" ]]; then
-      nsenter -t 1 -m -u -i -n -p \
       trace-cmd record \
       -e "net" \
       -e "sock" \

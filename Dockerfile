@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
         procps \
         systemd \
         tcpdump \
+        trace-cmd \
         && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /run/systemd
 COPY hook.sh /hook.sh

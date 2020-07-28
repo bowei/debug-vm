@@ -51,8 +51,6 @@ if [[ -z ${bytesMax} ]]; then
 fi
 
 if [[ -n "$ftraceMode" ]]; then
-  nsenter -t 1 -m -u -i -n -p apt-get update
-  nsenter -t 1 -m -u -i -n -p apt-get install -y trace-cmd
   source /hook.sh
 fi
 

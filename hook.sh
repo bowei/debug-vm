@@ -75,3 +75,12 @@ function do_ftrace() {
 
   echo "_END___ $d $f"  | tee -a "${console}"
 }
+
+# Performs an sysrq dump
+function do_sysrq_dump() {
+  # enable sysrq
+  echo "1" > /proc/sys/kernel/sysrq
+
+  # do the sysrq t; will dump to dmesg
+  echo "t" > /proc/sysrq-trigger
+}

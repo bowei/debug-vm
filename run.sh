@@ -47,12 +47,17 @@ console=${hostdev}/console
 logs=${logs:=/logs}
 recordSysctl=${recordSysctl:=n} # "y" records sysctl settings.
 reduceKernelHungTimeout=${recordSysctl:=n} # "y" reduces the hung task timeout to 20s
+enableSysRq=${enableSysRq:=n} # "y" will perform sysrq t to print dump kernel tasks to dmesg during hook.
 
 if [[ -z ${bytesMax} ]]; then
   bytesMax=$(( 250 * 1000 * 1000 )) # Maximum size of logs to keep around.
 fi
 
 if [[ -n "$ftraceMode" ]]; then
+  source /hook.sh
+fi
+
+if [[ "${enableSysRq}" == "y" ]]; then
   source /hook.sh
 fi
 
@@ -159,6 +164,10 @@ while true; do
   if ! c=$(curl -m "5" -f -s -S http://127.0.0.1:10248/healthz 2>&1); then
     if [[ -n "$ftraceMode" ]]; then
       do_ftrace "${ftraceMode}" "${maxFtraces}"
+    fi
+
+    if [[ "${enableSysRq}" == "y" ]]; then
+      do_sysrq_dump
     fi
   fi
   set -e

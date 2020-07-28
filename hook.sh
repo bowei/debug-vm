@@ -34,6 +34,9 @@ function do_ftrace() {
 
   echo "_BEGIN_ $d $f"  | tee -a "${console}"
 
+  local bufferSize="16384"
+  local traceTime="4"
+
   if [[ "${ftraceMode}" = "irqs" ]]; then
     trace-cmd record \
       -e "napi:napi_poll" \
@@ -44,8 +47,9 @@ function do_ftrace() {
       -e "irq:softirq_entry" \
       -e "irq:softirq_exit" \
       -e "irq:softirq_raise" \
+      -b "${bufferSize}" \
       -o "${outDir}/${ftraceMode}_${d}.dat" \
-      sleep 10
+      sleep "${traceTime}"
   elif [[ "${ftraceMode}" = "scheduling" ]]; then
       trace-cmd record \
       -e "sched:sched_wakeup" \
@@ -55,16 +59,18 @@ function do_ftrace() {
       -e "sched:sched_wait_task" \
       -e "sched:sched_process_wait" \
       -e "sched:sched_stat_runtime" \
+      -b "${bufferSize}" \
       -o "${outDir}/${ftraceMode}_${d}.dat" \
-      sleep 10
+      sleep "${traceTime}"
   elif [[ "${ftraceMode}" = "full" ]]; then
       trace-cmd record \
       -e "net" \
       -e "sock" \
       -e "tcp" \
       -e "syscalls" \
+      -b "${bufferSize}" \
       -o "${outDir}/${ftraceMode}_${d}.dat" \
-      sleep 10
+      sleep "${traceTime}"
   fi
 
   echo "_END___ $d $f"  | tee -a "${console}"

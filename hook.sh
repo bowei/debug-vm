@@ -12,10 +12,10 @@ function do_ftrace() {
     return
   fi
 
-  local outDir="/tmp/fdumps"
+  local outDir="/hostrun/debugvm/ftrace/fdumps"
   mkdir -p "${outDir}"
 
-  local attemptsRemainingFile="/tmp/ftrace_attempts_left.txt"
+  local attemptsRemainingFile="/hostrun/debugvm/ftrace/ftrace_attempts_left.txt"
   if [[ ! -f "${attemptsRemainingFile}" ]]; then
     echo "${maximumTraces}" > "${attemptsRemainingFile}"
   fi

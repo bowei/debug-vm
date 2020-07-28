@@ -42,6 +42,8 @@ spec:
           mountPath: /run/systemd/journal
         - name: hostdev
           mountPath: /hostdev
+        - name: hostrun
+          mountPath: /hostrun
       terminationGracePeriodSeconds: 30
       volumes:
       - name: journal
@@ -50,3 +52,6 @@ spec:
       - name: hostdev
         hostPath:
           path: /dev
+      - name: hostrun
+        hostPath:
+          path: /run

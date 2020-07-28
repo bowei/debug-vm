@@ -46,6 +46,7 @@ hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
 logs=${logs:=/logs}
 recordSysctl=${recordSysctl:=n} # "y" records sysctl settings.
+reduceKernelHungTimeout=${recordSysctl:=n} # "y" reduces the hung task timeout to 20s
 
 if [[ -z ${bytesMax} ]]; then
   bytesMax=$(( 250 * 1000 * 1000 )) # Maximum size of logs to keep around.
@@ -78,6 +79,10 @@ fi
 
 mkdir -p ${logs}
 mkdir -p ${logs}/cur
+
+if [[ "${reduceKernelHungTimeout}" = "y" ]]; then
+  sysctl -w kernel.hung_task_timeout_secs=20
+fi
 
 while true; do
   rm -f ${logs}/cur/*

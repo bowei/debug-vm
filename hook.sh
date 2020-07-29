@@ -4,18 +4,20 @@
 # Arguments:
 #   ftraceMode (empty to disable, irqs, scheduling, or full)
 #   maximumTraces
+#   root dir for dumps
 function do_ftrace() {
   local ftraceMode="${1}"
   local maximumTraces="${2}"
+  local dumpDir="${3}"
 
   if [[ -z "${ftraceMode}" ]]; then
     return
   fi
 
-  local outDir="/hostvar/debugvm/ftrace/fdumps"
+  local outDir="${dumpDir}/ftrace/fdumps"
   mkdir -p "${outDir}"
 
-  local attemptsRemainingFile="/hostvar/debugvm/ftrace/ftrace_attempts_left.txt"
+  local attemptsRemainingFile="${dumpDir}/ftrace/ftrace_attempts_left.txt"
   if [[ ! -f "${attemptsRemainingFile}" ]]; then
     echo "${maximumTraces}" > "${attemptsRemainingFile}"
   fi

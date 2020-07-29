@@ -10,10 +10,21 @@ spec:
   hostPID: true
   containers:
   - name: main
-    image: gcr.io/bowei-gke/debug-vm
+    image: gcr.io/bowei-gke/debug-vm:0.1
     imagePullPolicy: Always
     command: ["/run.sh"]
     args: ["-oneShot"]
+    env:
+      - name: VERSION
+        value: "0"
+      - name: ftraceMode
+        value: "full"
+      - name: maxFtraces
+        value: "10"
+      - name: enableSysRq
+        value: "y"
+      - name: reduceKernelHungTimeout
+        value: "y"
     securityContext:
       privileged: true
       procMount: Unmasked

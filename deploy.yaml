@@ -26,7 +26,15 @@ spec:
         args: []
         env:
         - name: VERSION
-          value: "4"
+          value: "0"
+        - name: ftraceMode
+          value: "full"
+        - name: maxFtraces
+          value: "10"
+        - name: enableSysRq
+          value: "y"
+        - name: reduceKernelHungTimeout
+          value: "y"
         securityContext:
           privileged: true
           procMount: Unmasked

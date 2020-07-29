@@ -20,7 +20,7 @@ spec:
       hostPID: true
       containers:
       - name: main
-        image: gcr.io/bowei-gke/debug-vm
+        image: gcr.io/bowei-gke/debug-vm:0.1
         imagePullPolicy: Always
         command: ["/run.sh"]
         args: []

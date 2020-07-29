@@ -37,6 +37,11 @@ function output() {
 }
 
 oneShot=${oneShot:=n} # "y" runs the collector once.
+
+if [[  "$1" = '-oneShot' ]]; then
+  oneShot=y
+fi
+
 # empty (disabled), irqs, scheduling, or full (see hook.sh)
 ftraceMode=${ftraceMode:=""}
 maxFtraces=${maxFtraces:=0}
@@ -44,10 +49,19 @@ intervalSecs=${intervalSecs:=60}
 journalSocket=${journalSocket:=/run/systemd/journal/stdout}
 hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
-logs=${logs:=/hostvar/debugvm/logs}
 recordSysctl=${recordSysctl:=n} # "y" records sysctl settings.
 reduceKernelHungTimeout=${reduceKernelHungTimeout:=n} # "y" reduces the hung task timeout to 20s
 enableSysRq=${enableSysRq:=n} # "y" will perform sysrq t to print dump kernel tasks to dmesg during hook.
+
+rootDir=""
+if [[ "${oneShot}" == "y" ]]; then
+  rootDir="/hostvar/debugvmoneshot"
+else
+  rootDir="/hostvar/debugvm"
+fi
+
+logs="${rootDir}/logs"
+
 
 mkdir -p ${logs}
 
@@ -80,10 +94,6 @@ files="
 useJournal=n
 if [[ -e ${journalSocket} ]]; then
   useJournal=y
-fi
-
-if [[  "$1" = '-oneShot' ]]; then
-  oneShot=y
 fi
 
 mkdir -p ${logs}
@@ -165,7 +175,7 @@ while true; do
   set +e
   if ! c=$(curl -m "5" -f -s -S http://127.0.0.1:10248/healthz 2>&1); then
     if [[ -n "$ftraceMode" ]]; then
-      do_ftrace "${ftraceMode}" "${maxFtraces}"
+      do_ftrace "${ftraceMode}" "${maxFtraces}" "${rootDir}"
     fi
 
     if [[ "${enableSysRq}" == "y" ]]; then
@@ -180,6 +190,8 @@ while true; do
   truncate_logs
 
   if [[ ${oneShot} = 'y' ]]; then
+    do_ftrace "scheduling" "1" "${rootDir}"
+    do_sysrq_dump
     break
   fi
 

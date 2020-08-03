@@ -9,8 +9,11 @@ logDir=${logDir:=/hostvar/debugvm/ftrace} # Where recorded output will go.
 tracer=${tracer:=function} # function, function_graph
 hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
+maxDumpBytes=$((2500 * 1000 * 1000))      # Keep 2.5 Gb of dumps.
 
 echo "Running periodic ftrace" | tee ${console}
+
+mkdir -p "${logDir}"
 
 while true; do
   startSecs=$(date '+%s')
@@ -20,7 +23,7 @@ while true; do
   echo "Starting trace at ${ts} to ${out}" | tee ${console}
 
   set -x
-  trace-cmd record \
+  /usr/bin/trace-cmd record \
     --date \
     -e "irq:softirq_entry" -f "vec==3||vec==2" \
     -e "irq:softirq_exit"  -f "vec==3||vec==2" \

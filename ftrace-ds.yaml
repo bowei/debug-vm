@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: debug-vm-ftrace
+  namespace: default
+  labels:
+    k8s-app: debug-vm-ftrace
+spec:
+  selector:
+    matchLabels:
+      name: debug-vm-ftrace
+  template:
+    metadata:
+      labels:
+        name: debug-vm-ftrace
+    spec:
+      nodeSelector:
+        debug-vm: "true"
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: main
+        image: gcr.io/bowei-gke/debug-vm-ftrace
+        imagePullPolicy: Always
+        command: ["/ftrace.sh"]
+        args: []
+        env:
+        - name: VERSION # Tweak this to force reload of the Daemonset.
+          value: "1"
+        securityContext:
+          privileged: true
+          procMount: Unmasked
+        resources:
+          limits:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - name: hostdev
+          mountPath: /hostdev
+        - name: hostvar
+          mountPath: /hostvar
+      volumes:
+      - name: hostdev
+        hostPath:
+          path: /dev
+      - name: hostvar
+        hostPath:
+          path: /var

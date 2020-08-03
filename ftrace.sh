@@ -32,7 +32,7 @@ while true; do
     -l "try_fill_recv" \
     -p "${tracer}" \
     -b "16384" \
-    -o "${out}" \
+    -o "${out}"
     sleep 5
   set +x
 

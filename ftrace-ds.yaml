@@ -20,7 +20,7 @@ spec:
       hostPID: true
       containers:
       - name: main
-        image: gcr.io/bowei-gke/debug-vm-ftrace:0.2
+        image: gcr.io/bowei-gke/debug-vm-ftrace:0.3
         imagePullPolicy: Always
         command: ["/ftrace.sh"]
         args: []

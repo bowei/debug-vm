@@ -53,7 +53,7 @@ while true; do
     -e "irq:softirq_exit"  -f "vec==3||vec==2" \
     -e "irq:softirq_raise" -f "vec==3||vec==2" \
     -e "napi:napi_poll" \
-    -e "net:napi_gro_receive_entry" \
+    -e "net" \
     -l "refill_work" \
     -l "skb_recv_done" \
     -l "try_fill_recv" \

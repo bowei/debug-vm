@@ -4,13 +4,37 @@ set -e
 
 # Runs ftrace periodically and log the results to disk.
 
-periodSecs=${periodSecs:=10}              # Run every 10 seconds.
+periodSecs=${periodSecs:=10} # Run every 10 seconds.
 logDir=${logDir:=/hostvar/debugvm/ftrace} # Where recorded output will go.
 tracer=${tracer:=function} # function, function_graph
 hostdev=${hostdev:=/hostdev}
 console=${hostdev}/console
-maxDumpBytes=$((2500 * 1000 * 1000))      # Keep 2.5 Gb of dumps.
+if [[ -z "${bytesMax}" ]]; then
+  bytesMax=$((2500 * 1000 * 1000)) # Keep 2.5 Gb of dumps by default
+fi
 
+function truncate() {
+  # Get the total number of bytes in the logs.
+  local total=$(du -b ${logs}/ftrace_*.dat | awk '{x += $1} END{print x}')
+  # Don't truncate if we are under the limit.
+  if [[ ${total} -le ${bytesMax} ]]; then
+    return
+  fi
+
+  echo "$(date '+%Y-%m-%dT%H:%M:%SZ') Cleaning logs"
+  # Go through the logs (in alphabetical order), deleting the oldest until
+  for f in ${logs}/ftrace_*.dat; do
+    local sz=$(du -b $f | awk  '{print $1}')
+    rm ${f}
+    echo "Removing ${f}"
+    total=$(( ${total} - ${sz} ))
+    if [[ ${total} -le ${bytesMax} ]]; then
+      break
+    fi
+  done
+}
+
+## main()
 echo "Running periodic ftrace" | tee ${console}
 
 mkdir -p "${logDir}"
@@ -49,4 +73,6 @@ while true; do
   else
     echo "Trace is longer than period (${deltaSecs}s)" | tee ${console}
   fi
+
+  truncate
 done

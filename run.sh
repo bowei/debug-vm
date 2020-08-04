@@ -4,20 +4,20 @@ set -e
 
 function truncate_logs() {
   # Get the total number of bytes in the logs.
-  local total=$(du -b ${logs}/dump_*.tgz | awk '{x += $1} END{print x}')
+  local total=$(du -b ${logs}/dump_*.tgz | gawk -M '{x += $1} END{print x}')
   # Don't truncate if we are under the limit.
-  if [[ ${total} -le ${bytesMax} ]]; then
+  if [[ "${total}" -le "${bytesMax}" ]]; then
     return
   fi
 
   echo "$(date '+%Y-%m-%dT%H:%M:%SZ') Cleaning logs"
   # Go through the logs (in alphabetical order), deleting the oldest until
   for f in ${logs}/dump_*.tgz; do
-    local sz=$(du -b $f | awk  '{print $1}')
-    rm ${f}
+    local sz=$(du -b $f | awk '{print $1}')
+    rm "${f}"
     echo "Removing ${f}"
     total=$(( ${total} - ${sz} ))
-    if [[ ${total} -le ${bytesMax} ]]; then
+    if [[ "${total}" -le "${bytesMax}" ]]; then
       break
     fi
   done

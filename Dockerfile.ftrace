@@ -3,6 +3,7 @@ RUN apt-get update && apt-get install -y \
         bash \
         curl \
         ethtool \
+        gawk \
         net-tools \
         nicstat \
         procps \
